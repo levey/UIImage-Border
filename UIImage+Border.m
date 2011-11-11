@@ -45,6 +45,7 @@ static CGImageRef CreateMask(CGSize size, NSUInteger thickness)
 
 @implementation UIImage(Border)
 
+<<<<<<< HEAD
 - (UIImage *)imageWithColoredBorder:(NSUInteger)borderThickness borderColor:(UIColor *)color withShadow:(BOOL)withShadow
 {
     size_t shadowThickness = 0;
@@ -67,6 +68,55 @@ static CGImageRef CreateMask(CGSize size, NSUInteger thickness)
     [self drawInRect:imageRect];
     //CGContextDrawImage(ctx, imageRect, self.CGImage); //if use this method, image will be filp vertically
     
+=======
+- (UIImage *)imageWithColoredBorder:(NSUInteger)thickness borderColor:(UIColor *)color
+{
+    size_t newWidth = self.size.width + 2 * thickness;
+    size_t newHeight = self.size.height + 2 * thickness;
+    
+    size_t bitsPerComponent = 8;
+    size_t bitsPerPixel = 32;
+    size_t bytesPerRow = bitsPerPixel * newWidth;
+    
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();    
+    if(colorSpace == NULL) 
+    {
+		NSLog(@"create color space failed");
+		return nil;
+	}
+    
+    CGContextRef bitmapContext = CGBitmapContextCreate(NULL,
+                                                       newWidth,
+                                                       newHeight,
+                                                       bitsPerComponent,
+                                                       bytesPerRow,
+                                                       colorSpace,
+                                                       kCGBitmapByteOrderDefault | kCGImageAlphaPremultipliedLast);
+    if (bitmapContext == NULL) 
+    {
+        NSLog(@"create bitmap Context failed");
+		return nil;
+    }
+    // acquire image with uncolored border
+    CGRect imageRect = CGRectMake(thickness, thickness, self.size.width, self.size.height);
+    CGContextDrawImage(bitmapContext, imageRect, self.CGImage);
+    CGImageRef unColoredBorderImageRef = CGBitmapContextCreateImage(bitmapContext);
+    UIImage *unColoredBorderImage = [UIImage imageWithCGImage:unColoredBorderImageRef];
+    
+    // clean up
+    CGColorSpaceRelease(colorSpace);
+    CGContextRelease(bitmapContext);
+    CGImageRelease(unColoredBorderImageRef);
+    
+    
+    UIImageView *imgv = [[[UIImageView alloc] initWithImage:unColoredBorderImage] autorelease];
+    imgv.frame = CGRectMake(0, 0, newWidth, newHeight);
+    imgv.layer.borderColor = color.CGColor;
+    imgv.layer.borderWidth = thickness;
+    
+    UIGraphicsBeginImageContext(CGSizeMake(newWidth, newHeight));
+    [imgv.layer renderInContext:UIGraphicsGetCurrentContext()];
+>>>>>>> 4e042c59006560990240771737ddd2c7f749f249
     UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
     return img;
 }
